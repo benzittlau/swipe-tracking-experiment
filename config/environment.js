@@ -3,6 +3,7 @@
 module.exports = function(environment) {
   var ENV = {
     modulePrefix: 'swipe-track-experiment',
+    podModulePrefix: 'swipe-track-experiment/pods',
     environment: environment,
     baseURL: '/',
     locationType: 'auto',

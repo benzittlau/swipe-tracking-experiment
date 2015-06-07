@@ -1,0 +1,35 @@
+/* Resets */
+body .ember-view {
+    height: 100%;
+}
+h1 {
+  margin: 0px;
+}
+html, body{
+  height: 100%;
+  margin: 0;
+}
+a:hover, a:visited, a:link, a:active {
+  color:inherit;
+  text-decoration: none;
+}
+
+
+/* Custom CSS */
+.route {
+  height: 100%
+}
+
+.route--red {
+  background-color:red;
+}
+
+.route--green {
+  background-color:green;
+}
+
+.route-title {
+  font-size: 6em;
+  text-align: center;
+}
+
