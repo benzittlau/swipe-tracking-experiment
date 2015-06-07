@@ -1,62 +1,49 @@
-import { stop, animate, Promise, isAnimating, finish } from "liquid-fire";
 import Ember from 'ember';
 
-export default function(opts) {
+export default function() {
   var bothElements = this.oldElement.add(this.newElement);
   var deferred = new Ember.RSVP.defer();
   var transition = this;
 
+  // Ensure the new element is visible
+  this.newElement.css('visibility', 'visible');
+
   bothElements.on('mouseup', function() {deferred.resolve('mouse up');});
-  //deferred.resolve();
+  bothElements.on('mousemove.swipeTransition', function(e) {trackMouseMovement(e, transition);});
 
   return deferred.promise.then(function() {
-    return moveOver.call(transition, 'x', -1, opts);
+    bothElements.unbind('mousemove.swipeTransition');
+    finalPositions(transition);
   });
 }
 
-function moveOver(dimension, direction, opts) {
-  var oldParams = {},
-      newParams = {},
-      firstStep,
-      property,
-      measure;
+var previousPageX;
+var cumulativeOffset = 0;
+function trackMouseMovement(e, transition) {
+  // Initialize pageX
+  previousPageX = previousPageX || e.pageX;
+  if (previousPageX !== e.pageX) {
+    var newElement = transition.newElement;
+    var oldElement = transition.oldElement;
 
-  if (dimension.toLowerCase() === 'x') {
-    property = 'translateX';
-    measure = 'width';
-  } else {
-    property = 'translateY';
-    measure = 'height';
+    cumulativeOffset = cumulativeOffset + (e.pageX - previousPageX);
+    console.log("Moved by " + cumulativeOffset);
+    
+    // Move both elements
+    var oldElementPosition = cumulativeOffset;
+    var newElementPosition = parseInt(oldElement.css('width'), 10) + cumulativeOffset;
+    oldElement.css('left', `${oldElementPosition}px`);
+    newElement.css('left', `${newElementPosition}px`);
+
+    // Remember our current position
+    previousPageX = e.pageX;
   }
-
-  if (isAnimating(this.oldElement, 'moving-in')) {
-    firstStep = finish(this.oldElement, 'moving-in');
-  } else {
-    stop(this.oldElement);
-    firstStep = Promise.resolve();
-  }
-
-  return firstStep.then(() => {
-    var bigger = biggestSize(this, measure);
-    oldParams[property] = (bigger * direction) + 'px';
-    newParams[property] = ["0px", (-1 * bigger * direction) + 'px'];
-
-    return Promise.all([
-      animate(this.oldElement, oldParams, opts),
-      animate(this.newElement, newParams, opts, 'moving-in')
-    ]);
-  });
 }
 
-function biggestSize(context, dimension) {
-  var sizes = [];
-  if (context.newElement) {
-    sizes.push(parseInt(context.newElement.css(dimension), 10));
-    sizes.push(parseInt(context.newElement.parent().css(dimension), 10));
-  }
-  if (context.oldElement) {
-    sizes.push(parseInt(context.oldElement.css(dimension), 10));
-    sizes.push(parseInt(context.oldElement.parent().css(dimension), 10));
-  }
-  return Math.max.apply(null, sizes);
+function finalPositions(transition) {
+  var newElement = transition.newElement;
+  var oldElement = transition.oldElement;
+
+  oldElement.css('left', `${oldElement.css('width')}px`);
+  newElement.css('left', `$0px`);
 }
